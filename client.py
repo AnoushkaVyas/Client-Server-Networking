@@ -10,7 +10,8 @@ HOST = 'localhost'
 PORT = 2000 
 cache_dict={}
 cache_size=3
-listoffile=os.listdir("./Cachefolder/")
+dir="./Cachefolder"
+os.mkdir(dir)
 
 
 def IndexGet(command):
@@ -249,6 +250,7 @@ while(True):
     historylist.append(command)
     if (command == 'quit'):
         quit(command) 
+        os.rmdir(dir)
         break
     elif(command=='history'):
         for hist in historylist:
@@ -264,7 +266,6 @@ while(True):
         ip = command.split()
         if (ip[0]=='IndexGet'):
             IndexGet(command)
-            pass
         elif (ip[0]=='FileHash'):
             filehashdata = FileHash(command)
         elif (ip[0]=='FileUpload'):

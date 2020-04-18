@@ -185,7 +185,6 @@ while(True):
                 
                 for rems in rem_req:
                     rems+=" "
-                    print("Debug -> ",rems)
                     if isinstance(rems,str):
                         savefile.write(rems.encode())
                     elif isinstance(rems,bytes):
