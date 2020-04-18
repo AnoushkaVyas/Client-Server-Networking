@@ -82,9 +82,9 @@ FileDownload filename mode
 ``` console
 Cache verify filename
 ```
-### A `Cachefolder` is required at the client side to implement this. The size of the cache is `3` and the cache is session specific but cache folder is not. This commands checks the presence of file in the session cache and if it is there it prints the `Filename` and `Filesize` and if it is not it calls the FileDownload command and downloads it in the Cachefolder. If the cache is full then the file with least number of requests in the current session is removed form Cachefolder and session cache.
+### The size of the cache is `3` and the cache is session specific. This commands checks the presence of file in the session cache and if it is there it prints the `Filename` and `Filesize` and if it is not it calls the FileDownload command and downloads it in the Cachefolder. If the cache is full then the file with least number of requests in the current session is removed form Cachefolder.
 
 ``` console
 Cache show
 ```
-### A `Cachefolder` is required at the client side to implement this. The size of the cache is `3` and the cache is session specific but cache folder is not. This commands displays the `Filename` and `Filesize` of all the files in the `Cachefolder`.
+###  The size of the cache is `3` and the cache is session specific. This commands displays the `Filename` and `Filesize` of all the files in the `Cachefolder`.
