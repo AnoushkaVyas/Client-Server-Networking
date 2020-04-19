@@ -53,12 +53,12 @@ IndexGet longlist *.txt word
 ### Displays the entire list of `*.txt` files with a particular `word` in it in folder of the server with `filesize`, `timestamp`, `name` and `filetype`.
 
 ``` console
-IndexGet shortlist <YYYY-MM-DD_HH-MM-SS> <YYYY-MM-DD_HH-MM-SS>
+IndexGet shortlist <YYYY-MM-DD_HH:MM:SS> <YYYY-MM-DD_HH:MM:SS>
 ```
 ### Displays the entire list of files in folder of the server with `filesize`, `timestamp`, `name` and `filetype` between a specific set of timestamps. 
 
 ``` console
-IndexGet shortlist <YYYY-MM-DD_HH-MM-SS> <YYYY-MM-DD_HH-MM-SS> *.filetype
+IndexGet shortlist <YYYY-MM-DD_HH:MM:SS> <YYYY-MM-DD_HH:MM:SS> *.filetype
 ```
 ### Displays the list of files of type `*.txt` or `*.pdf` in folder of the server with `filesize`, `timestamp`, `name` and `filetype` between a specific set of timestamps. 
 
