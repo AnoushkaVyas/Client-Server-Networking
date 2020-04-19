@@ -6,8 +6,8 @@ import struct
 #Need subprocess for timestamp based indexing in IndexGet
 
 HOST = 'localhost'
-PORT = 2000
-
+PORT = 5000
+UDP_port=9999
 #Initialise a socket at the port specified
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -180,44 +180,84 @@ while(True):
         if(len(request) > 1):
             request_file = request[1]
             if (request[0] == 'FileUpload'):
-                savefile = open(request_file,'wb')
-                rem_req = request[2:]
+                if request[2]=='UDP':
+                    udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    udp.bind((HOST,UDP_port))
+                    BigC = open(request_file, "wb")
+                    ClientBData, clientbAddr = udp.recvfrom(4096)
+                    try: 
+                        while ClientBData:
+                            BigC.write(ClientBData)
+                            udp.settimeout(5)
+                            ClientBData, clientbAddr = udp.recvfrom(4096)
+                    except socket.timeout:
+                        BigC.close()
+                        udp.close()
+                    print("File Downloaded using UDP")
                 
-                for rems in rem_req:
-                    rems+=" "
-                    if isinstance(rems,str):
-                        savefile.write(rems.encode())
-                    elif isinstance(rems,bytes):
-                        savefile.write(rems)
+                else:
+                    savefile = open(request_file,'wb')
+                    rem_req = request[2:]
+                    
+                    for rems in rem_req:
+                        rems+=" "
+                        if isinstance(rems,str):
+                            savefile.write(rems.encode())
+                        elif isinstance(rems,bytes):
+                            savefile.write(rems)
 
-                while(True):
-                    data = recv_one_message(conn)
-                    if data is None:
-                        print('Transfer Complete')
-                        break
-                    else:
-                        print('Incoming data Debug ->',str(data))
-                        if(isinstance(data,str)):
-                            savefile.write(data.encode())
-                        elif(isinstance(data,bytes)):
-                            savefile.write(data)
+                    while(True):
+                        data = recv_one_message(conn)
+                        if data is None:
+                            print('Transfer Complete')
+                            break
+                        else:
+                            if(isinstance(data,str)):
+                                savefile.write(data.encode())
+                            elif(isinstance(data,bytes)):
+                                savefile.write(data)
 
-                savefile.close()
-                print('Uploaded Successfully')
-            
+                    savefile.close()
+                    print('Uploaded Successfully with TCP')
+                    
             elif (request[0] == 'FileDownload'):
                 if os.path.isfile(request_file) is False:
                     print('WARNING -> File requested Does not exist.')
                 else:    
-                    filesize = os.stat(request_file).st_size
-                    filetime = time.ctime(os.stat(request_file).st_mtime)
-                    print('Request for Downloading %s'%request_file+' of size ->%s B'%filesize + ' Last modified at %s'%filetime)
-                    send_one_message(conn, str(filesize).encode('utf-8'))
-                    send_one_message(conn, str(filetime).encode('utf-8'))
-                    send_one_message(conn, str(md5sum(request_file)).encode('utf-8'))
-                    with open(request_file, 'rb') as sendfile:
-	                    for data in sendfile:
-	                        conn.send(data)
-                    print ('File Sent')
+                    if request[2]=='UDP':
+                        udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        sizeS = os.stat(request_file)
+                        sizeSS = sizeS.st_size
+                        NumS = int(sizeSS / 4096)
+                        NumS = NumS + 1
+                        tillSS = str(NumS)
+                        tillSSS = tillSS.encode('utf8')
+                        udp.sendto(tillSSS, (HOST,UDP_port))
+                        udp.sendto(str(sizeSS).encode('utf8'), (HOST,UDP_port))
+                        filetime = time.ctime(os.stat(request_file).st_mtime)
+                        udp.sendto(str(filetime).encode('utf8'), (HOST,UDP_port))
+                        udp.sendto(str(md5sum(request_file)).encode('utf-8'), (HOST,UDP_port))
+                        check = int(NumS)
+                        GetRunS = open(request_file, "rb")
+                        while check != 0:
+                            RunS = GetRunS.read(4096)
+                            udp.sendto(RunS,(HOST,UDP_port))
+                            check -= 1
+                        GetRunS.close()
+                        print("Sent from Server using UDP")
+                        udp.close()
+                    
+                    else:
+                        filesize = os.stat(request_file).st_size
+                        filetime = time.ctime(os.stat(request_file).st_mtime)
+                        print('Request for Downloading %s'%request_file+' of size ->%s B'%filesize + ' Last modified at %s'%filetime)
+                        send_one_message(conn, str(filesize).encode('utf-8'))
+                        send_one_message(conn, str(filetime).encode('utf-8'))
+                        send_one_message(conn, str(md5sum(request_file)).encode('utf-8'))
+                        with open(request_file, 'rb') as sendfile:
+                            for data in sendfile:
+                                conn.send(data)
+                        print ('File Sent')
+                    
     conn.close()
 s.close()

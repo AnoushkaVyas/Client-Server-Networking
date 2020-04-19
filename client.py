@@ -3,11 +3,12 @@ import os, sys
 import hashlib
 import tqdm
 import struct
-
+import time
 
 #server name goes in HOST
 HOST = 'localhost'
-PORT = 2000 
+PORT = 5000 
+UDP_port = 9999
 cache_dict={}
 cache_size=3
 dir="./Cachefolder"
@@ -48,17 +49,31 @@ def listdirServer(command):
     return
 
 def upload(command):
+    comm = command.split(' ')
+    mode=comm[2]
+    filename = comm[1]
     sckt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sckt.connect((HOST, PORT))
     send_one_message(sckt, command.encode('utf-8'))
-    comm = command.split(' ')
-    filename = comm[1]
-    with open(filename, 'rb') as sendfile:
-        for data in sendfile:
-            print(data)
-            send_one_message(sckt, data)
-    print ('Upload Finished')
-    sckt.close()
+    if mode == 'UDP':
+        udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        f=open(filename,"rb")
+        data = f.read(4096)
+        while (data):
+            if(udp.sendto(data,(HOST,UDP_port))):
+                data = f.read(4096)
+
+            if len(data)<4096:
+                break
+        udp.close()
+        f.close()
+
+    else:
+        with open(filename, 'rb') as sendfile:
+            for data in sendfile:
+                send_one_message(sckt, data)
+        print ('Upload Finished with TCP')
+        sckt.close()
     return
 
 def cacheshow():
@@ -78,7 +93,7 @@ def cacheverify(command):
         print("File already present in cache")
         print("Filename: ",filename," File size: ",cache_dict[filename]['Filesize'])
     else:
-        filesize=download('FileDownload'+' '+filename,'cache')
+        filesize=download('FileDownload'+' '+filename+' '+'TCP','cache')
         no_of_items=len(cache_dict)
         if no_of_items==cache_size:
             l1=list(cache_dict.keys())[0]
@@ -106,33 +121,57 @@ def download(command,flag='normaldownload'):
     send_one_message(sckt, command.encode('utf-8'))
     comm = command.split(' ')
     filename = comm[1]
-    filesize = recv_one_message(sckt)
-    filesize = filesize.decode()
-    filetime = recv_one_message(sckt)
-    filetime = filetime.decode()
-    print('Downloading %s'%filename + ' of size -> %s B'%filesize+' Last modified at -> %s'%filetime)
-    filehash = recv_one_message(sckt)
-    filehash = filehash.decode()
-    print('MD5SUM => ',filehash)
-    if flag=='cache':
-        with open('./Cachefolder/'+filename, 'wb') as savefile:
-            while True:
-                data = sckt.recv(1024)
-                if not data:
-                    break
-                savefile.write(data)
-        savefile.close()
+    mode=comm[2]
+    if mode=='UDP':
+        udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        udp.bind((HOST,UDP_port))
+        CountC, countaddress = udp.recvfrom(4096)
+        tillC = CountC.decode('utf8')
+        tillCC = int(tillC)
+        C1, c1 = udp.recvfrom(4096)
+        C2, c2 = udp.recvfrom(4096)
+        C3, c3 = udp.recvfrom(4096)
+        print('Downloading %s'%filename + ' of size -> %s B'%int(C1.decode('utf8'))+' Last modified at -> %s'%str(C2.decode('utf8')))
+        print('MD5SUM => ',str(C3.decode('utf8')))
+        BigC = open(filename, "wb")
+        while tillCC != 0:
+            ClientBData, clientbAddr = udp.recvfrom(4096)
+            BigC.write(ClientBData)
+            tillCC = tillCC - 1
+        print("File Downloaded using UDP")
+        udp.close()
+        BigC.close()
+
     else:
-        with open(filename, 'wb') as savefile:
-            while True:
-                data = sckt.recv(1024)
-                if not data:
-                    break
-                savefile.write(data)
-        savefile.close()
-    print ('Download Finished')
-    sckt.close()
-    return filesize
+        filesize = recv_one_message(sckt)
+        filesize = filesize.decode()
+        filetime = recv_one_message(sckt)
+        filetime = filetime.decode()
+        print('Downloading %s'%filename + ' of size -> %s B'%filesize+' Last modified at -> %s'%filetime)
+        filehash = recv_one_message(sckt)
+        filehash = filehash.decode()
+        print('MD5SUM => ',filehash)
+        if flag=='cache':
+            with open('./Cachefolder/'+filename, 'wb') as savefile:
+                while True:
+                    data = sckt.recv(1024)
+                    if not data:
+                        break
+                    savefile.write(data)
+            savefile.close()
+        else:
+            with open(filename, 'wb') as savefile:
+                while True:
+                    data = sckt.recv(1024)
+                    if not data:
+                        break
+                    savefile.write(data)
+            savefile.close()
+        print ('Download Finished')
+        sckt.close()
+    
+    if mode=='TCP':
+        return filesize
 
 def md5sum(filename, blocksize=65536):
     hash = hashlib.md5()

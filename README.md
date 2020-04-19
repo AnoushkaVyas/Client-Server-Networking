@@ -76,13 +76,17 @@ FileHash verify filename
 ``` console
 FileUpload filename mode
 ```
+### Uploads file with either `TCP` or `UDP` protocols.
+
 ``` console
 FileDownload filename mode
 ```
+### Downloads file from the server using `TCP` or `UDP` and displays `filename`, `filesize`, `MD5checksum` and `timestamp`.
+
 ``` console
 Cache verify filename
 ```
-### The size of the cache is `3` and the cache is session specific. This commands checks the presence of file in the session cache and if it is there it prints the `Filename` and `Filesize` and if it is not it calls the FileDownload command and downloads it in the Cachefolder. If the cache is full then the file with least number of requests in the current session is removed form Cachefolder.
+### The size of the cache is `3` and the cache is session specific. This commands checks the presence of file in the session cache and if it is there it prints the `Filename` and `Filesize` and if it is not it calls the FileDownload command with TCP and downloads it in the Cachefolder. If the cache is full then the file with least number of requests in the current session is removed form Cachefolder.
 
 ``` console
 Cache show
