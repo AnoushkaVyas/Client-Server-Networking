@@ -62,8 +62,7 @@ def upload(command):
         while (data):
             if(udp.sendto(data,(HOST,UDP_port))):
                 data = f.read(4096)
-
-            if len(data)<4096:
+            if len(data) < 4096:
                 break
         udp.close()
         f.close()

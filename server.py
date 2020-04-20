@@ -191,10 +191,10 @@ while(True):
                             udp.settimeout(5)
                             ClientBData, clientbAddr = udp.recvfrom(4096)
                     except socket.timeout:
-                        BigC.close()
                         udp.close()
+                        BigC.close()
                     print("File Downloaded using UDP")
-                
+                    
                 else:
                     savefile = open(request_file,'wb')
                     rem_req = request[2:]
