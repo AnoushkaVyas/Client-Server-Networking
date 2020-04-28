@@ -10,6 +10,7 @@
 - struct
 - time
 - subprocess
+- shutil
 
 ## Running
 ### There are two files, `client.py` and `server.py`. Both the files can be put in same folder in your local machine or different folders. Open two different terminals and in the respective folder run:

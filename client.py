@@ -4,6 +4,7 @@ import hashlib
 import tqdm
 import struct
 import time
+import shutil
 
 #server name goes in HOST
 HOST = 'localhost'
@@ -81,7 +82,7 @@ def cacheshow():
         print("Cache Folder is empty")
     else:
         for files in listoffile:
-            filesize = os.stat(files).st_size
+            filesize = os.stat("./Cachefolder/"+files).st_size
             print("Filename: ", files, " Filesize: ", filesize)
 
 def cacheverify(command):
@@ -288,7 +289,7 @@ while(True):
     historylist.append(command)
     if (command == 'quit'):
         quit(command) 
-        os.rmdir(dir)
+        shutil.rmtree(dir)
         break
     elif(command=='history'):
         for hist in historylist:
